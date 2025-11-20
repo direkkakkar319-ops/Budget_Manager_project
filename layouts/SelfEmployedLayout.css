@@ -1,0 +1,92 @@
+.self-layout {
+  min-height: 100vh;
+  background-color: #fafaf9;
+  display: flex;
+}
+
+.self-sidebar {
+  width: 16rem;
+  background-color: #1c1917;
+  color: #d6d3d1;
+  display: flex;
+  flex-direction: column;
+}
+
+.self-sidebar-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #292524;
+}
+
+.self-brand {
+  font-size: 1.25rem;
+  font-family: serif;
+  color: #f59e0b;
+}
+
+.self-brand-highlight {
+  color: #fff;
+}
+
+.self-nav {
+  flex: 1;
+  padding: 1rem;
+}
+
+.self-section-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #78716c;
+  margin-bottom: 0.5rem;
+  margin-top: 1rem;
+}
+
+.self-section-spaced {
+  margin-top: 1.5rem;
+}
+
+.self-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.self-link-active {
+  background-color: #292524;
+  color: #f59e0b;
+}
+
+.self-link-inactive:hover {
+  background-color: #292524;
+  color: #f59e0b;
+}
+
+.self-logout {
+  padding: 1rem;
+  border-top: 1px solid #292524;
+}
+
+.self-logout-button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  width: 100%;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s ease;
+}
+
+.self-logout-button:hover {
+  background-color: #292524;
+}
+
+.self-main {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
