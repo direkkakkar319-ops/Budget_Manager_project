@@ -1,0 +1,4 @@
+.ui-tabs { display: flex; background-color: #fff; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 0.25rem; }
+.ui-tabs__btn { padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 600; transition: background-color 0.2s ease, color 0.2s ease; color: #374151; }
+.ui-tabs__btn:hover { background-color: #f9fafb; }
+.ui-tabs__btn--active { background-color: #111827; color: #fff; }

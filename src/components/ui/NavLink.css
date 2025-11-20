@@ -1,0 +1,13 @@
+.ui-navlink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.ui-navlink--active { background-color: #eff6ff; color: #2563eb; }
+.ui-navlink--inactive { color: #4b5563; }
+.ui-navlink--inactive:hover { color: #2563eb; background-color: #eff6ff; }
