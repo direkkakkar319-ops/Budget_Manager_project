@@ -1,4 +1,4 @@
-# 💰 Budget Manager - Gen Z Style
+# 💰 Budget Manager - Gen Alpha Style
 
 A modern, feature-rich budget management application built with React. Designed with Gen Z aesthetics in mind - vibrant colors, smooth animations, and an intuitive interface.
 
@@ -45,3 +45,4 @@ A modern, feature-rich budget management application built with React. Designed 
 ## 💾 Data Storage
 
 All data is stored on cloud in using mongodb. Your transactions, budgets, and goals persist between sessions.
+
