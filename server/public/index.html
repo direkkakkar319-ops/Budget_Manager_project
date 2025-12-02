@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Budget Manager</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <style>
+      .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+      .two { grid-column: span 2; }
+      .full { grid-column: 1 / -1; }
+      .card { padding: 1rem; border: 1px solid #e5e7eb; border-radius: 8px; }
+      .flex { display: flex; gap: 0.5rem; align-items: center; }
+      .table { width: 100%; }
+      .badge { background: #eef; padding: 2px 6px; border-radius: 6px; font-size: 12px; }
+      .muted { color: #666; }
+      header nav { display:flex; gap:.75rem; flex-wrap:wrap }
+      header a { text-decoration:none }
+      .active { font-weight: 600; }
+      main.container { max-width: 1100px }
+    </style>
+  </head>
+  <body>
+    <header class="container">
+      <h2>Budget Manager</h2>
+      <nav id="nav"></nav>
+    </header>
+    <main class="container">
+      <div id="auth"></div>
+      <div id="app"></div>
+    </main>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="text/babel">
+      const { useEffect, useState } = React
+      function useHashRoute() {
+        const [hash, setHash] = React.useState(() => window.location.hash || '#/')
+        React.useEffect(() => {
+          const onChange = () => setHash(window.location.hash || '#/')
+          window.addEventListener('hashchange', onChange)
+          return () => window.removeEventListener('hashchange', onChange)
+        }, [])
+        return hash
+      }
+
+      let TOKEN = null
+      function setToken(t){ TOKEN = t; localStorage.setItem('token', t) }
+      function getToken(){ return TOKEN || localStorage.getItem('token') || null }
+      function authHeaders(){ const t = getToken(); return t ? { 'Authorization': 'Bearer ' + t } : {} }
+
+      const API = {
+        async login(email, password){ return fetch('/api/auth/login', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ email, password }) }).then(r => r.json()) },
+        async me(){ return fetch('/api/auth/me', { headers: authHeaders() }).then(r => r.json()) },
+        async dashboard() { return fetch('/api/dashboard', { headers: authHeaders() }).then(r => r.json()) },
+        async transactions(params={}) {
+          const q = new URLSearchParams(params).toString()
+          return fetch('/api/transactions' + (q ? ('?' + q) : ''), { headers: authHeaders() }).then(r => r.json())
+        },
+        async addTransaction(payload) {
+          const fd = new FormData()
+          Object.entries(payload).forEach(([k,v]) => {
+            if (v === undefined || v === null) return
+            if (k === 'receipt' && v) fd.append('receipt', v)
+            else fd.append(k, Array.isArray(v) ? v.join(',') : v)
+          })
+          return fetch('/api/transactions', { method: 'POST', headers: authHeaders(), body: fd }).then(r => r.json())
+        },
+        async budgets() { return fetch('/api/budgets', { headers: authHeaders() }).then(r => r.json()) },
+        async addBudget(b) { return fetch('/api/budgets', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(b) }).then(r => r.json()) },
+        async categories() { return fetch('/api/categories').then(r => r.json()) },
+        async accounts() { return fetch('/api/accounts').then(r => r.json()) },
+        async exportCSV() { window.location = '/api/transactions/export.csv' }
+      }
+
+      const PERM = {
+        dashboard: { view: ['admin','client_mgmt','self_employed','salary','accountant','viewer'] },
+        transactions: { view: ['admin','client_mgmt','self_employed','salary','accountant','viewer'] },
+        budgets: { view: ['admin','client_mgmt','self_employed','salary','accountant','viewer'] },
+        clients: { view: ['admin','client_mgmt','self_employed','accountant'] },
+        invoices: { view: ['admin','client_mgmt','self_employed','accountant'] },
+        reports: { view: ['admin','client_mgmt','self_employed','accountant'] },
+        settings: { view: ['admin'] },
+        tax: { view: ['admin','accountant'] }
+      }
+      function canView(role, resource){ const r = PERM[resource]; return r && r.view.includes(role) }
+
+      function AuthGate({ onReady }){
+        const [token, setTok] = React.useState(getToken())
+        const [role, setRole] = React.useState(null)
+        const [email, setEmail] = React.useState('admin@example.com')
+        const [password, setPassword] = React.useState('admin123')
+        React.useEffect(() => { (async () => { if (token) { const me = await API.me(); setRole(me.role); onReady && onReady({ token, role: me.role }) } })() }, [token])
+        async function login(e){ e.preventDefault(); const res = await API.login(email, password); if (res.token){ setToken(res.token); setTok(res.token); const me = await API.me(); setRole(me.role); onReady && onReady({ token: res.token, role: me.role }) } }
+        function logout(){ localStorage.removeItem('token'); setTok(null); setRole(null); onReady && onReady(null) }
+        if (!token) return (
+          <form onSubmit={login} className="card">
+            <label>Email<input value={email} onChange={e => setEmail(e.target.value)} /></label>
+            <label>Password<input type="password" value={password} onChange={e => setPassword(e.target.value)} /></label>
+            <button type="submit">Login</button>
+          </form>
+        )
+        return (
+          <div className="flex"><span className="muted">Role: {role}</span><button onClick={logout}>Logout</button></div>
+        )
+      }
+
+      function DashboardCard({ title, value, subtitle }) {
+        return (
+          <div className="card">
+            <h4>{title}</h4>
+            <h3>{value}</h3>
+            {subtitle && <span className="muted">{subtitle}</span>}
+          </div>
+        )
+      }
+
+      function AddTransaction({ onAdded, categories, accounts }) {
+        const [type, setType] = useState('expense')
+        const [amount, setAmount] = useState('')
+        const [date, setDate] = useState(() => new Date().toISOString().slice(0,10))
+        const [category, setCategory] = useState('expense')
+        const [account, setAccount] = useState('Cash')
+        const [vendor, setVendor] = useState('')
+        const [client, setClient] = useState('')
+        const [tags, setTags] = useState('')
+        const [notes, setNotes] = useState('')
+        const [receipt, setReceipt] = useState(null)
+        function navigate(path) { window.location.hash = path }
+
+        async function submit(e) {
+          e.preventDefault()
+          const payload = { type, amount, date, category_id: category, account, vendor, client, tags, notes, receipt }
+          const res = await API.addTransaction(payload)
+          onAdded && onAdded(res)
+          setAmount('')
+          setVendor('')
+          setClient('')
+          setTags('')
+          setNotes('')
+          setReceipt(null)
+          navigate('#/transactions')
+        }
+
+        return (
+          <form onSubmit={submit}>
+            <div className="grid">
+              <div className="card">
+                <label>Type<select value={type} onChange={e => setType(e.target.value)}><option value="expense">Expense</option><option value="income">Income</option></select></label>
+                <label>Amount<input type="number" value={amount} onChange={e => setAmount(e.target.value)} required /></label>
+                <label>Date<input type="date" value={date} onChange={e => setDate(e.target.value)} required /></label>
+              </div>
+              <div className="card">
+                <label>Category<select value={category} onChange={e => setCategory(e.target.value)}>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+                <label>Account<select value={account} onChange={e => setAccount(e.target.value)}>{accounts.map(a => <option key={a} value={a}>{a}</option>)}</select></label>
+                <label>Tags<input value={tags} onChange={e => setTags(e.target.value)} placeholder="comma separated" /></label>
+              </div>
+              <div className="card">
+                <label>Vendor<input value={vendor} onChange={e => setVendor(e.target.value)} /></label>
+                <label>Client<input value={client} onChange={e => setClient(e.target.value)} /></label>
+                <label>Notes<textarea value={notes} onChange={e => setNotes(e.target.value)} /></label>
+                <label>Receipt<input type="file" onChange={e => setReceipt(e.target.files[0])} /></label>
+                <button type="submit">Add</button>
+              </div>
+            </div>
+          </form>
+        )
+      }
+
+      function TransactionsTable({ items }) {
+        return (
+          <table className="table">
+            <thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Account</th><th>Amount</th><th>Party</th><th>Tags</th><th>Receipt</th></tr></thead>
+            <tbody>
+              {items.map(t => (
+                <tr key={t.id}>
+                  <td>{new Date(t.date).toLocaleDateString()}</td>
+                  <td><span className="badge">{t.type}</span></td>
+                  <td>{t.category_id}</td>
+                  <td>{t.account}</td>
+                  <td>{t.amount}</td>
+                  <td>{t.vendor || t.client || ''}</td>
+                  <td>{(t.tags||[]).join(', ')}</td>
+                  <td>{t.receipt_url ? <a href={t.receipt_url} target="_blank">view</a> : ''}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )
+      }
+
+      function Charts({ items }) {
+        const canvasRef = React.useRef(null)
+        const chartRef = React.useRef(null)
+        useEffect(() => {
+          if (!canvasRef.current) return
+          const byDate = {}
+          items.forEach(t => {
+            const d = new Date(t.date).toISOString().slice(0,10)
+            byDate[d] = (byDate[d] || 0) + (t.type === 'income' ? t.amount : -t.amount)
+          })
+          const labels = Object.keys(byDate).sort()
+          const data = labels.map(l => byDate[l])
+          if (chartRef.current) { chartRef.current.destroy(); chartRef.current = null }
+          chartRef.current = new Chart(canvasRef.current, { type: 'line', data: { labels, datasets: [{ label: 'Cashflow', data, borderColor: '#36a2eb' }] } })
+          return () => { if (chartRef.current) { chartRef.current.destroy(); chartRef.current = null } }
+        }, [items])
+        return <canvas ref={canvasRef} height="120"></canvas>
+      }
+
+      function DashboardPage() {
+        const [dashboard, setDashboard] = useState(null)
+        const [transactions, setTransactions] = useState([])
+        useEffect(() => { (async () => {
+          const [d, tx] = await Promise.all([API.dashboard(), API.transactions({})])
+          setDashboard(d)
+          setTransactions(Array.isArray(tx) ? tx : [])
+        })() }, [])
+        return (
+          <div>
+            {dashboard && typeof dashboard.balance === 'number' && (
+              <div className="grid">
+                <div className="card"><DashboardCard title="Balance" value={`₹ ${dashboard.balance.toFixed(2)}`} subtitle="Income - Expense" /></div>
+                <div className="card"><DashboardCard title="Cashflow 30d" value={`₹ ${dashboard.cashflow_30d.toFixed(2)}`} /></div>
+                <div className="card"><DashboardCard title="Cashflow 90d" value={`₹ ${dashboard.cashflow_90d.toFixed(2)}`} /></div>
+                <div className="card"><DashboardCard title="Upcoming bills" value={dashboard.upcoming_bills} /></div>
+              </div>
+            )}
+            {(!dashboard || typeof dashboard.balance !== 'number') && (
+              <div className="card"><span className="muted">Login required to view dashboard.</span></div>
+            )}
+            <div className="card">
+              <h4>Cashflow</h4>
+              <Charts items={transactions} />
+            </div>
+          </div>
+        )
+      }
+
+      function TransactionsPage() {
+        const [transactions, setTransactions] = useState([])
+        const [categories, setCategories] = useState([])
+        const [accounts, setAccounts] = useState([])
+        async function refresh() {
+          const [tx, cats, accs] = await Promise.all([
+            API.transactions({}), API.categories(), API.accounts()
+          ])
+          setTransactions(Array.isArray(tx) ? tx : [])
+          setCategories(cats)
+          setAccounts(accs)
+        }
+        useEffect(() => { refresh() }, [])
+        return (
+          <div>
+            <h3>Quick Add</h3>
+            <AddTransaction onAdded={() => refresh()} categories={categories} accounts={accounts} />
+            <div className="flex">
+              <h3>Transactions</h3>
+              <button onClick={() => API.exportCSV()}>Export CSV</button>
+            </div>
+            <TransactionsTable items={transactions} />
+          </div>
+        )
+      }
+
+      function BudgetsPage() {
+        const [budgets, setBudgets] = useState([])
+        const [categories, setCategories] = useState([])
+        const [category, setCategory] = useState('expense')
+        const [target, setTarget] = useState('')
+        const [start, setStart] = useState(() => new Date().toISOString().slice(0,10))
+        const [end, setEnd] = useState(() => new Date().toISOString().slice(0,10))
+        const [notes, setNotes] = useState('')
+        async function refresh() {
+          const [b, cats] = await Promise.all([API.budgets(), API.categories()])
+          setBudgets(b)
+          setCategories(cats)
+        }
+        useEffect(() => { refresh() }, [])
+        async function addBudget(e) {
+          e.preventDefault()
+          const res = await API.addBudget({ category_id: category, target, start_date: start, end_date: end, notes })
+          setCategory('expense')
+          setTarget('')
+          setNotes('')
+          refresh()
+        }
+        return (
+          <div>
+            <h3>Create Budget</h3>
+            <form onSubmit={addBudget} className="grid">
+              <div className="card">
+                <label>Category<select value={category} onChange={e => setCategory(e.target.value)}>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+                <label>Target<input type="number" value={target} onChange={e => setTarget(e.target.value)} required /></label>
+                <label>Start<input type="date" value={start} onChange={e => setStart(e.target.value)} required /></label>
+                <label>End<input type="date" value={end} onChange={e => setEnd(e.target.value)} required /></label>
+                <label>Notes<textarea value={notes} onChange={e => setNotes(e.target.value)} /></label>
+                <button type="submit">Add Budget</button>
+              </div>
+            </form>
+            <h3>Budgets</h3>
+            <table className="table">
+              <thead><tr><th>Category</th><th>Target</th><th>Used</th><th>Progress</th><th>Period</th></tr></thead>
+              <tbody>
+                {budgets.map(b => (
+                  <tr key={b.id}>
+                    <td>{b.category_id}</td>
+                    <td>{b.target}</td>
+                    <td>{b.used || 0}</td>
+                    <td>{b.progress || 0}%</td>
+                    <td>{new Date(b.start_date).toLocaleDateString()} - {new Date(b.end_date).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      }
+
+      function Stub({ title, children }) {
+        return (
+          <div>
+            <h3>{title}</h3>
+            <p className="muted">{children}</p>
+          </div>
+        )
+      }
+
+      function Nav({ role }) {
+        const hash = useHashRoute()
+        function cls(path) { return hash === path ? 'active' : '' }
+        return (
+          <div className="flex">
+            {canView(role,'dashboard') && <a href="#/" className={cls('#/')}>Dashboard</a>}
+            {canView(role,'transactions') && <a href="#/transactions" className={cls('#/transactions')}>Transactions</a>}
+            {canView(role,'budgets') && <a href="#/budgets" className={cls('#/budgets')}>Budgets</a>}
+            {canView(role,'invoices') && <a href="#/invoices" className={cls('#/invoices')}>Invoices</a>}
+            {canView(role,'clients') && <a href="#/clients" className={cls('#/clients')}>Clients</a>}
+            {canView(role,'reports') && <a href="#/reports" className={cls('#/reports')}>Reports</a>}
+            {canView(role,'settings') && <a href="#/settings" className={cls('#/settings')}>Settings</a>}
+            {canView(role,'tax') && <a href="#/tax" className={cls('#/tax')}>Tax Center</a>}
+          </div>
+        )
+      }
+
+      function Root({ role }) {
+        const hash = useHashRoute()
+        let page = hash.replace('#', '') || '/'
+        function guard(resource, element){ return canView(role, resource) ? element : <Stub title="403 Forbidden">You do not have access to this page.</Stub> }
+        if (page === '/') return (<div><Nav role={role} /><DashboardPage /></div>)
+        if (page === '/transactions') return (<div><Nav role={role} />{guard('transactions', <TransactionsPage />)}</div>)
+        if (page === '/budgets') return (<div><Nav role={role} />{guard('budgets', <BudgetsPage />)}</div>)
+        if (page === '/invoices') return (<div><Nav role={role} />{guard('invoices', <Stub title="Invoices">Create, send, track invoices. Coming next.</Stub>)}</div>)
+        if (page === '/clients') return (<div><Nav role={role} />{guard('clients', <Stub title="Clients">Manage clients and payment history. Coming next.</Stub>)}</div>)
+        if (page === '/reports') return (<div><Nav role={role} />{guard('reports', <Stub title="Reports">Visual reports and exports. Coming next.</Stub>)}</div>)
+        if (page === '/settings') return (<div><Nav role={role} />{guard('settings', <Stub title="Settings">Auth, preferences, and security. Coming next.</Stub>)}</div>)
+        if (page === '/tax') return (<div><Nav role={role} />{guard('tax', <Stub title="Tax Center">GST/VAT summaries and fields. Coming next.</Stub>)}</div>)
+        return (<div><Nav role={role} /><Stub title="Not Found">Page not found.</Stub></div>)
+      }
+
+      let CURRENT_ROLE = null
+      function onAuthReady(info){ CURRENT_ROLE = info ? info.role : null; ReactDOM.createRoot(document.getElementById('app')).render(<Root role={CURRENT_ROLE} />); ReactDOM.createRoot(document.getElementById('nav')).render(<Nav role={CURRENT_ROLE} />) }
+      ReactDOM.createRoot(document.getElementById('auth')).render(<AuthGate onReady={onAuthReady} />)
+      ReactDOM.createRoot(document.getElementById('app')).render(<Root role={CURRENT_ROLE} />)
+      ReactDOM.createRoot(document.getElementById('nav')).render(<Nav role={CURRENT_ROLE} />)
+    </script>
+  </body>
+  </html>

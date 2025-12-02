@@ -1,0 +1,12 @@
+.ui-skeleton { border-radius: 0.25rem; animation: ui-pulse 1.5s ease-in-out infinite; background-color: #e5e7eb; }
+.ui-skeleton-line { height: 1rem; border-radius: 0.25rem; animation: ui-pulse 1.5s ease-in-out infinite; background-color: #e5e7eb; }
+.ui-skeleton-text > * + * { margin-top: 0.5rem; }
+
+@media (prefers-color-scheme: dark) {
+  .ui-skeleton, .ui-skeleton-line { background-color: #1E293B; }
+}
+
+@keyframes ui-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
