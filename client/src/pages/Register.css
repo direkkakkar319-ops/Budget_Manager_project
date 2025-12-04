@@ -1,0 +1,88 @@
+.register-page { max-width: 28rem; margin-left: auto; margin-right: auto; padding: 1rem }
+@media (min-width: 640px) { .register-page { padding: 1.25rem } }
+@media (min-width: 1024px) { .register-page { padding: 1.5rem } }
+
+.register-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  background-image: linear-gradient(to right, #6366f1, #ec4899);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.register-subtitle { text-align: center; color: #6b7280; margin-bottom: 2rem; font-size: 0.9375rem }
+
+.register-error {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  padding: 1rem;
+  border-radius: 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.register-error-icon { width: 1.25rem; height: 1.25rem; color: #ef4444; }
+
+.register-form > * + * { margin-top: 1.25rem }
+@media (min-width: 640px) { .register-form > * + * { margin-top: 1.5rem } }
+
+.register-toggle {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background-color .2s ease, color .2s ease, border-color .2s ease, transform .2s ease;
+}
+.register-toggle:hover { color: #cbd5e1; background-color: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.15) }
+.register-toggle:focus-visible { outline: 2px solid #6366f1; outline-offset: 2px }
+.register-toggle:active { transform: scale(0.98) }
+
+.register-terms {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: box-shadow .2s ease
+}
+.register-terms:focus-within { box-shadow: 0 0 0 3px rgba(99,102,241,.2) }
+.register-accept-terms { width: 1.25rem; height: 1.25rem; border-radius: 0.25rem; border: 2px solid #111827; display: flex; align-items: center; justify-content: center; }
+.register-accept-icon { width: 0.75rem; height: 0.75rem; }
+.register-terms-text { font-size: 0.875rem; color: #94a3b8; }
+.register-link-underline { text-decoration: underline; }
+.register-link-underline:hover { text-decoration: underline; }
+
+.register-role { }
+.register-role-label { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: #374151; }
+.register-select { width: 100%; border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; padding: 0.75rem; background-color: #0f172a; color: #fff; }
+
+.register-submit { width: 100%; transition: transform .2s ease, filter .2s ease }
+.register-submit:hover { filter: brightness(1.05) }
+.register-submit:active { transform: scale(0.98) }
+
+.register-footer { margin-top: 2rem; text-align: center; }
+.register-footer-text { color: #6b7280; font-size: 0.875rem; }
+.register-link {
+  margin-left: 0.25rem;
+  font-weight: 700;
+  background-image: linear-gradient(to right, #6366f1, #ec4899);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  transition: background-image .2s ease
+}
+.register-link:hover { background-image: linear-gradient(to right, #4f46e5, #db2777) }

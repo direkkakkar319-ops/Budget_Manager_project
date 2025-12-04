@@ -1,0 +1,117 @@
+.self-layout {
+  min-height: 100vh;
+  background-color: hsl(var(--background));
+  display: flex;
+}
+
+.self-sidebar {
+  width: 16rem;
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+}
+
+.self-sidebar-header {
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.self-brand {
+  font-size: 1.25rem;
+  font-family: serif;
+  color: hsl(var(--primary));
+}
+
+.self-brand-highlight {
+  color: hsl(var(--foreground));
+}
+
+.self-nav {
+  flex: 1;
+  padding-top: 1rem;
+}
+
+.self-section-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 0.5rem;
+  margin-top: 1rem;
+}
+
+.self-section-spaced {
+  margin-top: 1.5rem;
+}
+
+.self-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.self-link-active {
+  background-color: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+}
+
+.self-link-inactive {
+  color: hsl(var(--muted-foreground));
+}
+
+.self-link-inactive:hover {
+  background-color: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+}
+
+.self-logout-button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  color: hsl(var(--muted-foreground));
+  background-color: hsl(var(--foreground) / 0.05);
+  border: 1px solid hsl(var(--border));
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.self-logout-button:hover {
+  background-color: hsl(0 100% 50% / 0.15);
+  border-color: hsl(0 100% 50% / 0.4);
+  color: hsl(0 100% 65%);
+}
+
+.self-logout-button:active {
+  transform: scale(0.98);
+}
+
+.self-main {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+@media (max-width: 1024px) {
+  .self-layout {
+    flex-direction: column;
+  }
+
+  .self-sidebar {
+    width: 100%;
+  }
+
+  .self-main {
+    padding: 1rem;
+  }
+}

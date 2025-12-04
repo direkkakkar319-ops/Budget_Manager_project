@@ -1,0 +1,40 @@
+.ui-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  background-color: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  padding: 0.25rem;
+  backdrop-filter: blur(12px);
+}
+
+.ui-tabs__btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  color: #94a3b8;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.ui-tabs__btn:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #e2e8f0;
+}
+
+.ui-tabs__btn--active {
+  background-color: #06b6d4;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+}
+
+@media (max-width: 640px) {
+  .ui-tabs__btn {
+    flex: 1 1 auto;
+    text-align: center
+  }
+}
