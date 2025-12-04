@@ -95,13 +95,11 @@ export default function SalaryTransactions() {
 
     const confirmDelete = async () => {
         if (!deleteId) return
-        console.log('Deleting transaction:', deleteId)
         setIsLoading(true)
         try {
             await axios.delete(`http://localhost:3001/api/transactions/${deleteId}`, {
                 headers: { Authorization: `Bearer ${user.token}` }
             })
-            console.log('Delete successful')
             setDeleteId(null)
             // Force refresh with timestamp to avoid cache
             const params = new URLSearchParams()

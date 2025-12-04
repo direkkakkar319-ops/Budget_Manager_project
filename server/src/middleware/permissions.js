@@ -6,7 +6,7 @@ const permissions = {
         view: ['admin', 'client_mgmt', 'self_employed', 'salary', 'accountant', 'viewer'],
         create: ['admin', 'client_mgmt', 'self_employed', 'salary'],
         update: ['admin', 'client_mgmt', 'self_employed', 'salary'],
-        delete: ['admin'],
+        delete: ['admin', 'client_mgmt', 'self_employed', 'salary'],
         export: ['admin', 'client_mgmt', 'self_employed', 'accountant'],
         import: ['admin', 'client_mgmt', 'self_employed']
     },

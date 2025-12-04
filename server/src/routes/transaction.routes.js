@@ -99,7 +99,7 @@ router.put('/transactions/:id', authenticate, authorize('transactions', 'update'
         const { id } = req.params
         const transaction = await Transaction.findById(id)
         if (!transaction) return res.status(404).json({ error: 'Not found' })
-        if (req.user.role !== 'admin' && transaction.user_id.toString() !== req.user.user_id) return res.status(403).json({ error: 'forbidden' })
+        if (transaction.user_id.toString() !== req.user.user_id) return res.status(403).json({ error: 'forbidden' })
 
         const body = req.body || {}
         const updates = {
@@ -134,7 +134,17 @@ router.delete('/transactions/:id', authenticate, authorize('transactions', 'dele
         const { id } = req.params
         const transaction = await Transaction.findById(id)
         if (!transaction) return res.status(404).json({ error: 'Not found' })
-        if (req.user.role !== 'admin' && transaction.user_id.toString() !== req.user.user_id) return res.status(403).json({ error: 'forbidden' })
+
+        console.log('Delete Debug:', {
+            reqUser: req.user,
+            txUser: transaction.user_id,
+            txUserStr: transaction.user_id.toString(),
+            match: transaction.user_id.toString() === req.user.user_id
+        })
+
+        if (transaction.user_id.toString() !== req.user.user_id) {
+            return res.status(403).json({ error: 'forbidden' })
+        }
         await Transaction.findByIdAndDelete(id)
         res.json(transaction)
     } catch (err) {
