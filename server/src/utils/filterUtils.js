@@ -9,7 +9,10 @@ function applyFilters(list, query) {
     let out = list
     if (query.type) out = out.filter(t => t.type === query.type)
     if (query.account) out = out.filter(t => t.account === query.account)
-    if (query.category_id) out = out.filter(t => t.category_id === query.category_id)
+    if (query.category_id) {
+        const cats = query.category_id.split(',').map(s => s.trim()).filter(Boolean)
+        if (cats.length > 0) out = out.filter(t => cats.includes(t.category_id))
+    }
     if (query.tag) out = out.filter(t => Array.isArray(t.tags) && t.tags.includes(query.tag))
     if (query.reconciled !== undefined) {
         if (query.reconciled === 'true') out = out.filter(t => !!t.reconciled)
