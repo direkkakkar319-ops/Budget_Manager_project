@@ -102,11 +102,23 @@ export default function SalaryTransactions() {
                 headers: { Authorization: `Bearer ${user.token}` }
             })
             console.log('Delete successful')
-            fetchTransactions()
             setDeleteId(null)
+            // Force refresh with timestamp to avoid cache
+            const params = new URLSearchParams()
+            if (searchQuery) params.append('q', searchQuery)
+            if (filters.categories.length) params.append('category_id', filters.categories.join(','))
+            if (filters.startDate) params.append('from', filters.startDate)
+            if (filters.endDate) params.append('to', filters.endDate)
+            params.append('_t', Date.now())
+
+            const res = await axios.get(`http://localhost:3001/api/transactions?${params.toString()}`, {
+                headers: { Authorization: `Bearer ${user.token}` }
+            })
+            setTransactions(res.data)
         } catch (err) {
             console.error('Delete failed:', err)
-            alert('Failed to delete transaction')
+            const msg = err.response?.data?.error || err.message || 'Unknown error'
+            alert(`Failed to delete transaction: ${msg}`)
         } finally {
             setIsLoading(false)
         }
@@ -155,8 +167,8 @@ export default function SalaryTransactions() {
                                     key={cat}
                                     onClick={() => toggleCategory(cat)}
                                     className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${filters.categories.includes(cat)
-                                            ? 'bg-cyan-500/20 border-cyan-500 text-cyan-400'
-                                            : 'bg-slate-800 border-white/10 text-slate-400 hover:border-white/30'
+                                        ? 'bg-cyan-500/20 border-cyan-500 text-cyan-400'
+                                        : 'bg-slate-800 border-white/10 text-slate-400 hover:border-white/30'
                                         }`}
                                 >
                                     {cat}
@@ -233,8 +245,12 @@ export default function SalaryTransactions() {
                                     {t.type === 'income' ? '+' : '-'}₹{t.amount}
                                 </td>
                                 <td className="p-4 text-center">
-                                    <button onClick={() => setDeleteId(t._id)} className="text-slate-500 hover:text-rose-400 transition-colors">
-                                        <Trash2 size={18} />
+                                    <button
+                                        onClick={() => setDeleteId(t._id)}
+                                        className="p-2 bg-slate-900/50 border border-white/10 rounded-xl text-slate-400 hover:bg-rose-500 hover:border-rose-500 hover:text-white transition-all group"
+                                        title="Delete Transaction"
+                                    >
+                                        <Trash2 size={18} className="group-hover:scale-110 transition-transform" />
                                     </button>
                                 </td>
                             </tr>
